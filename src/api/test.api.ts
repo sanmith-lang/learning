@@ -9,7 +9,12 @@ testRouter.post("/", async (req, res) => {
     try {
         const { message } = req.body;
 
-        const response = await generateResponse(CHAT_SYSTEM_PROMPT, message);
+        const response = await generateResponse({
+            messages: [
+                { role: "system", content: CHAT_SYSTEM_PROMPT },
+                { role: "user", content: message }
+            ]
+        });
 
         const final_answer = response.replace(/\n/g, "").trim();
 

@@ -24,10 +24,12 @@ export const runAgent = async (userInput: string, session_id: string) => {
 
             const planner_prompt = plannerPrompt(userInput);
 
-            const response = await generateResponse(
-                planner_prompt + `\n\nContext:\n${context}`, 
-                JSON.stringify(history)
-            );
+            const response = await generateResponse({
+                messages: [
+                    ...history,
+                    { role: "system", content: planner_prompt + `\n\nContext:\n${context}` }
+                ]
+            });
 
             let decision;
 
@@ -36,7 +38,9 @@ export const runAgent = async (userInput: string, session_id: string) => {
                 decision = AgentDecisionSchema.parse(parsed);
 
                 if (decision.action === "final") {
-                    return decision.finalAnswer;
+                    const finalAnswer = decision.finalAnswer ?? "No final answer";
+                    addMessage(session_id, { role: "assistant", content: finalAnswer });
+                    return finalAnswer;
                 }
 
                 if (decision.action === "tool") {
@@ -49,7 +53,6 @@ export const runAgent = async (userInput: string, session_id: string) => {
                     }
 
                     const result = await tool.execute(decision.input);
-
                     addMessage(session_id, { role: "assistant", content: result });
                 }
             } catch (error) {

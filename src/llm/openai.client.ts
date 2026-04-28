@@ -1,19 +1,19 @@
 import { client } from "../config/llm.config.js";
 
-export const generateResponse = async (prompt: string ,messages: string) => {
+type ChatMessage = {
+    role: "system" | "user" | "assistant";
+    content: string;
+};
+
+export const generateResponse = async ({
+    messages,
+}: {
+    messages: ChatMessage[];
+}) => {
     try {
         const stream = await client.chat.completions.create({
             model: "openai/gpt-oss-20b",
-            messages: [
-                {
-                    role: "system",
-                    content: prompt,
-                },
-                {
-                    role: "user",
-                    content: messages,
-                },
-            ],
+            messages: messages,
             stream: true,
         });
 
